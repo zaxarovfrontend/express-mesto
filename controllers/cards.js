@@ -6,12 +6,7 @@ const getCard = (req, res) => {
     .then((cards) => {
       res.status(200).send(cards);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'некорректный запрос к серверу' });
-      }
-      res.status(500).send({ message: 'Ошибка на сервере' });
-    });
+    .catch(() => res.status(500).send({ message: 'некорректный запрос к серверу' }));
 };
 
 // создаёт карточку
@@ -21,7 +16,7 @@ const createCard = (req, res) => {
   Card.create({ name, link, owner })
     .then((card) => res.status(200).send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Переданы некоректные данные при создании карточки' });
       }
       return res.status(500).send({ message: 'Ошибка на сервере' });
@@ -35,8 +30,11 @@ const deleteCard = (req, res) => {
       res.status(200).send(card);
     })
     .catch((err) => {
+      console.log(err.name);
       if (err.name === 'CastError') {
-        return res.status(404).send({ message: 'карточка с указанным id не найдена' });
+        res.status(400).send({ message: 'некоректный запрос' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'карточка с указанным id не найдена' });
       }
       return res.status(500).send({ message: 'Ошибка на сервере' });
     });
@@ -51,10 +49,11 @@ const likeCard = (req, res) => {
     .then((card) => {
       res.status(200).send(card);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Переданны некоректные данные для постановки/снятия лайка' });
-      } else if (err.message === 'NotFound') {
+        return res.status(400).send({ message: 'Переданны некоректные данные для постановки/снятия лайка' });
+      } if (err.message === 'NotFound') {
         res.status(404).send({ message: 'карточка с указанным id не найдена' });
       } else {
         res.status(500).send({ message: 'Ошибка на сервере' });
@@ -70,11 +69,16 @@ const dislikeCard = (req, res) => {
     .then((card) => {
       res.status(200).send(card);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Переданны некоректные данные для постановки/снятия лайка' });
       }
-      return res.status(500).send({ message: 'Ошибка на сервере' });
+      if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'карточка с указанным id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Ошибка на сервере' });
+      }
     });
 };
 
