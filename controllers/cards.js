@@ -16,7 +16,7 @@ const createCard = (req, res) => {
   Card.create({ name, link, owner })
     .then((card) => res.status(200).send(card))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         return res.status(400).send({ message: 'Переданы некоректные данные при создании карточки' });
       }
       return res.status(500).send({ message: 'Ошибка на сервере' });
@@ -26,6 +26,7 @@ const createCard = (req, res) => {
 // удаляет карточку по идентификатору
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(new Error('NotFound'))
     .then((card) => {
       res.status(200).send(card);
     })
@@ -33,7 +34,7 @@ const deleteCard = (req, res) => {
       console.log(err.name);
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'некоректный запрос' });
-      } else if (err.message === 'NotFound') {
+      } if (err.message === 'NotFound') {
         res.status(404).send({ message: 'карточка с указанным id не найдена' });
       }
       return res.status(500).send({ message: 'Ошибка на сервере' });
@@ -46,11 +47,13 @@ const likeCard = (req, res) => {
   Card.findByIdAndUpdate(cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true })
+    .orFail(new Error('NotFound'))
     .then((card) => {
       res.status(200).send(card);
     })
     // eslint-disable-next-line consistent-return
     .catch((err) => {
+      console.log(err.name);
       if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Переданны некоректные данные для постановки/снятия лайка' });
       } if (err.message === 'NotFound') {
@@ -66,6 +69,7 @@ const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
     { new: true })
+    .orFail(new Error('NotFound'))
     .then((card) => {
       res.status(200).send(card);
     })

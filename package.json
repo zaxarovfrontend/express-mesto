@@ -1,8 +1,8 @@
 {
   "name": "express-mesto",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Mesto-express",
+  "main": "app.js",
   "scripts": {
     "lint": "npx eslint .",
     "start": "node app.js",
