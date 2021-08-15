@@ -1,20 +1,28 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const crypto = require('crypto'); // экспортируем crypto
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { errors, celebrate, Joi } = require('celebrate');
+const NotFoundError = require('./errors/not-found-error');
+const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
-const app = express();
+
 const { PORT = 3000 } = process.env;
-const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost:27017/mestodb', {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useUnifiedTopology: true,
+});
+const app = express();
 
 const usersRoute = require('./routes/users');
 const cardsRoute = require('./routes/card');
 
-const { login, createUser } = require('./controllers/users');
-const auth = require('./middlewares/auth');
 
-const NotFoundError = require('./errors/not-found-error');
 
 const randomString = crypto
   .randomBytes(16) // сгенерируем случайную последовательность 16 байт (128 бит)
@@ -28,24 +36,10 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// eslint-disable-next-line import/no-extraneous-dependencies
+
 require('dotenv').config();
 
 app.use(helmet());
-
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true,
-});
-
-app.post('/signin', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().email(),
-    password: Joi.string().required(),
-  }),
-}), login);
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -57,15 +51,14 @@ app.post('/signup', celebrate({
   }),
 }), createUser);
 
-app.use(auth);
-app.use('/', express.json());
-app.use('/', usersRoute);
-app.use('/', cardsRoute);
-app.all('*', (req, res, next) => {
-  next(new NotFoundError('ресурс не найден.'));
-});
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
 
-app.use(errors());
+
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
@@ -77,6 +70,16 @@ app.use((err, req, res, next) => {
   });
   next();
 });
+
+app.use(auth);
+app.use('/', express.json());
+app.use('/', usersRoute);
+app.use('/', cardsRoute);
+app.all('*', (req, res, next) => {
+  next(new NotFoundError('ресурс не найден.'));
+});
+
+app.use(errors());
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);

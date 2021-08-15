@@ -80,6 +80,7 @@ const createUser = (req, res, next) => {
       });
     })
     .catch((err) => {
+      console.log(err)
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Некорректные данные'));
       } else if (err.name === 'MongoError' && err.code === 11000) {
