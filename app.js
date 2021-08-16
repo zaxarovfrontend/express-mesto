@@ -71,8 +71,9 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.use(auth);
+
 app.use('/', express.json());
+app.use(auth);
 app.use('/', usersRoute);
 app.use('/', cardsRoute);
 app.all('*', (req, res, next) => {
