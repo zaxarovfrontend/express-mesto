@@ -24,9 +24,6 @@ router.patch('/users/me', celebrate({
 }), userInfo);
 
 
-
-// обновляет информация о пользователе
-
 // обновляет аватар
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({

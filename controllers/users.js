@@ -18,18 +18,7 @@ const getUserFile = (req, res, next) => {
       .catch(next));
 };
 
-const login = (req, res, next) => {
-  const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
-        'super-strong-secret', { expiresIn: '7d' });
-      res.send({ token });
-    })
-    .catch((err) => {
-      next(new UnauthorizedError(`необходимо авторизоваться: ${err.message}`));
-    });
-};
+
 
 const getUsersInfo = (req, res, next) => {
   User.find({})
@@ -90,6 +79,19 @@ const createUser = (req, res, next) => {
       }
     });
 };
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'super-strong-secret', { expiresIn: '7d' });
+      res.send({ token });
+    })
+    .catch((err) => {
+      next(new UnauthorizedError(`необходимо авторизоваться: ${err.message}`));
+    });
+};
+
 
 const userInfo = (req, res, next) => {
   const userId = req.user._id;
