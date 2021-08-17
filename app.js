@@ -42,8 +42,8 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required().min(4),
-    name: Joi.string().min(3).max(15),
-    about: Joi.string().min(3).max(15),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
     avatar: Joi.string().regex(/^(https?:\/\/)?([\da-z\\.-]+)\.([a-z\\.]{2,6})([/\w \\.-]*)*\/?$/),
   }),
 }), createUser);
@@ -55,7 +55,6 @@ app.post('/signin', celebrate({
   }),
 }), login);
 
-app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла ошибка' : message });
@@ -69,6 +68,8 @@ app.use('/', cardsRoute);
 app.all('*', (req, res, next) => {
   next(new NotFoundError('ресурс не найден.'));
 });
+
+app.use(errors());
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
