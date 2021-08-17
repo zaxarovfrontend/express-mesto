@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 const ForbiddenError = require('../errors/forbidden-error');
 const NotFoundError = require('../errors/not-found-error');
+const BadRequestError = require('../errors/bad-request-error');
 
 // возвращает все карточки
 const getCard = (req, res, next) => {
@@ -17,7 +18,13 @@ const createCard = (req, res, next) => {
   const owner = req.user._id;
   Card.create({ name, link, owner })
     .then((card) => res.status(200).send(card))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Переданы некоректные данные при создании карточки'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 // удаляет карточку по идентификатору
@@ -47,8 +54,16 @@ const likeCard = (req, res, next) => {
     .then((card) => {
       res.status(200).send(card);
     })
-    // eslint-disable-next-line consistent-return
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданны некоректные данные для постановки/снятия лайка'));
+      }
+      if (err.message === 'NotFound') {
+        next(new NotFoundError('карточка с указанным id не найдена'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 const dislikeCard = (req, res, next) => {
@@ -60,8 +75,16 @@ const dislikeCard = (req, res, next) => {
     .then((card) => {
       res.status(200).send(card);
     })
-    // eslint-disable-next-line consistent-return
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданны некоректные данные для постановки/снятия лайка'));
+      }
+      if (err.message === 'NotFound') {
+        next(new NotFoundError('карточка с указанным id не найдена'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports = {
