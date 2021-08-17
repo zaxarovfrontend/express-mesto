@@ -12,13 +12,11 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const getUserFile = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => next(new NotFoundError('пользователь с указанным id не найден')))
-    .then(((user) => {
+    .then((user) => {
       res.status(200).send(user);
     })
-      .catch(next));
+    .catch(next);
 };
-
-
 
 const getUsersInfo = (req, res, next) => {
   User.find({})
@@ -69,7 +67,6 @@ const createUser = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err)
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Некорректные данные'));
       } else if (err.name === 'MongoError' && err.code === 11000) {
@@ -91,7 +88,6 @@ const login = (req, res, next) => {
       next(new UnauthorizedError(`необходимо авторизоваться: ${err.message}`));
     });
 };
-
 
 const userInfo = (req, res, next) => {
   const userId = req.user._id;

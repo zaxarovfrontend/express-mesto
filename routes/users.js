@@ -2,7 +2,7 @@ const router = require('express').Router();
 
 const { celebrate, Joi } = require('celebrate');
 const {
-  getUsersInfo, getUserId, userInfo, avatarUpdate, getUserFile
+  getUsersInfo, getUserId, userInfo, avatarUpdate, getUserFile,
 } = require('../controllers/users');
 
 // возвращает всех пользователей
@@ -22,7 +22,6 @@ router.patch('/users/me', celebrate({
     about: Joi.string().required().min(3).max(15),
   }),
 }), userInfo);
-
 
 // обновляет аватар
 router.patch('/users/me/avatar', celebrate({

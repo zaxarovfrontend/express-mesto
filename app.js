@@ -8,7 +8,6 @@ const NotFoundError = require('./errors/not-found-error');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 
-
 const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
@@ -22,8 +21,6 @@ const app = express();
 const usersRoute = require('./routes/users');
 const cardsRoute = require('./routes/card');
 
-
-
 const randomString = crypto
   .randomBytes(16) // сгенерируем случайную последовательность 16 байт (128 бит)
   .toString('hex'); // приведём её к строке
@@ -36,10 +33,10 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-
 require('dotenv').config();
 
 app.use(helmet());
+app.use('/', express.json());
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -58,24 +55,20 @@ app.post('/signin', celebrate({
   }),
 }), login);
 
-
 app.use(errors());
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
-  res.status(statusCode).send({message: statusCode === 500 ? 'На сервере произошла ошибка' : message});
+  res.status(statusCode).send({ message: statusCode === 500 ? 'На сервере произошла ошибка' : message });
   next();
 });
 
-
-
 app.use(auth);
-app.use('/', express.json());
+
 app.use('/', usersRoute);
 app.use('/', cardsRoute);
 app.all('*', (req, res, next) => {
   next(new NotFoundError('ресурс не найден.'));
 });
-
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
